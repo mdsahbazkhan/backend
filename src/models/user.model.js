@@ -33,7 +33,7 @@ const userSchema =  new Schema(
         },
         coverImage:{
             type:String,//cloudinary url
-            required:true
+            required:false
         },
         watchHistory:[{
             type:Schema.Types.ObjectId,
