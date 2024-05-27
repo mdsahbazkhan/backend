@@ -49,11 +49,34 @@ const userSchema =  new Schema(
     },{timestamps:true})
     userSchema.pre("save",async function(next){
        if(!this.isModified("password")) return next();
-
-       this.password = await bcrypt.hash(this.password,10)
-       next(); 
+       try {
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
+        next();
+      } catch (error) {
+        next(error);
+      }
+    //    this.password = await bcrypt.hash(this.password,10)
+    //    next(); 
     })
-    userSchema.methods.isPasswordCorrect = async function(password){ return await bcrypt.compare(password,this.password)
+    userSchema.methods.isPasswordCorrect = async function(password){
+        if (!password) {
+            console.error('Password is missing');
+            throw new Error('Password must be provided');
+          }
+        
+          if (!this.password) {
+            console.error('Hashed password is missing');
+            throw new Error('Hashed password must be provided');
+          }
+        
+         
+         
+        try{ 
+        return await bcrypt.compare(password, this.password);
+      } catch (error) {
+        throw new Error('Error while comparing passwords: ' + error.message);
+      }
     }
     userSchema.methods.generateAccessToken = function(){
       return  jwt.sign({
